@@ -45,7 +45,7 @@ public class PoolInfo
             return newObj;
         }
 
-        public GameObject Spawn(GameObject prefab, Vector3 position, Quaternion rotation)
+        public GameObject Spawn(GameObject prefab, Vector3 position, Quaternion rotation)//²¨³»±â 
         {
             string key = prefab.name;
             if (!poolDictionary.ContainsKey(key))

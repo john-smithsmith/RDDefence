@@ -64,12 +64,30 @@ public class Enemy : MonoBehaviour
 
     void Die()
     {
-        Destroy(gameObject);
+        if (BoardManager.Instance != null)
+        {
+            BoardManager.Instance.AddSP(10);
+        }
+        if (PoolManager.Instance != null)
+        {
+            PoolManager.Instance.ReturnToPool(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 
     void ReachEndPoint()
     {
         Debug.Log("적이 기지에 도착했습니다!");
-        Destroy(gameObject); // 일단은 삭제
+        if (PoolManager.Instance != null)
+        {
+            PoolManager.Instance.ReturnToPool(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 }

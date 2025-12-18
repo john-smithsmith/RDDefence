@@ -82,4 +82,10 @@ public class BoardManager : MonoBehaviour
             targetSlot.SetDice(newDice);
         }
     }
+
+    public void AddSP(int amount)
+    {
+        sp += amount;
+        Debug.Log("SPÈ¹µæ ÇöÀç SP: " + sp);
+    }
 }

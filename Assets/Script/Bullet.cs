@@ -37,8 +37,12 @@ public class Bullet : MonoBehaviour
             PoolManager.Instance.ReturnToPool(gameObject);
         }
     }
-    void ApplyDamageEffect(Enemy primaryTarget)
+    void ApplyDamageEffect(Enemy Target)
     {
-       
+        Target.TakeDamage(damage);
+        if (type == DiceType.Ice)
+        {
+            Target.ApplySlow(0.7f); // 30% °¨¼Ó
+        }
     }
 }
