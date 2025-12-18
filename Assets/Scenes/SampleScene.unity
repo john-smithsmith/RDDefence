@@ -1300,8 +1300,8 @@ MonoBehaviour:
   - {fileID: 1899428373}
   - {fileID: 818264851}
   - {fileID: 1019445027}
-  sp: 100
-  spawnCost: 10
+  sp: 200
+  spawnCost: 5
 --- !u!114 &1168522126
 MonoBehaviour:
   m_ObjectHideFlags: 0

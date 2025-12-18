@@ -101,37 +101,41 @@ public class Dice : MonoBehaviour
 
     void CheckDrop()
     {
-        Collider2D hit = Physics2D.OverlapPoint(transform.position);
-
-        if (hit != null)
+        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, 0.5f);
+        Slot targetSlot = null;
+        foreach (Collider2D hit in hits)
         {
-            Slot targetSlot = hit.GetComponent<Slot>();
-            if (targetSlot != null)
+            if (hit.gameObject == gameObject) continue;
+
+            Slot s = hit.GetComponent<Slot>();
+            if (s != null)
             {
-                if (targetSlot.IsEmpty())
+                targetSlot = s;
+                break; 
+            }
+        }
+        if (targetSlot != null)
+        {
+            if (targetSlot.IsEmpty())
+            {
+                currentSlot.RemoveDice();
+                targetSlot.SetDice(this);
+                return;
+            }
+            if (targetSlot.currentDice != null && targetSlot.currentDice != this)
+            {
+                Dice targetDice = targetSlot.currentDice;
+                if (type == targetDice.type && dotCount == targetDice.dotCount && dotCount < 7)
                 {
                     currentSlot.RemoveDice();
-                    targetSlot.SetDice(this);
+                    targetSlot.RemoveDice();
+                    PoolManager.Instance.ReturnToPool(gameObject);
+                    PoolManager.Instance.ReturnToPool(targetDice.gameObject);
+                    BoardManager.Instance.SpawnMergedDiceAtRandom(dotCount + 1);
                     return;
-                }
-
-                if (targetSlot.currentDice != null && targetSlot.currentDice != this)
-                {
-                    Dice targetDice = targetSlot.currentDice;
-
-                    if (type == targetDice.type && dotCount == targetDice.dotCount && dotCount < 7)
-                    {
-                        currentSlot.RemoveDice();
-                        targetSlot.RemoveDice();
-                        PoolManager.Instance.ReturnToPool(gameObject);
-                        PoolManager.Instance.ReturnToPool(targetDice.gameObject);
-                        BoardManager.Instance.SpawnMergedDiceAtRandom(dotCount + 1);
-                        return;
-                    }
                 }
             }
         }
-
         ReturnToSlot();
     }
 

@@ -40,7 +40,7 @@ public class BoardManager : MonoBehaviour
             if (SpawnRandomDice())
             {
                 sp -= spawnCost;
-                spawnCost += 10;
+                spawnCost += 5;
                 Debug.Log("다이스 소환 남은 SP: " + sp);
             }
         }
