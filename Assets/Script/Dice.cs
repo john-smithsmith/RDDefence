@@ -2,11 +2,21 @@ using TMPro;
 using UnityEngine;
 
 
+public enum DiceState
+{
+    Idle,       // 대기 
+    Attack,     // 공격 
+    Cooldown    // 휴식 
+}
+
 public enum DiceType { Basic, Ice, Fire, Lightning, Wind }
 public class Dice : MonoBehaviour
 {
     private bool isDragging = false;
-    
+    private Vector2 startDragPos;
+
+    [Header("State")]
+    public DiceState currentState = DiceState.Idle;
 
     [Header("Data")]
     public DiceType type;      // 주사위 종류
@@ -15,13 +25,13 @@ public class Dice : MonoBehaviour
 
     [Header("Prefab")]
     public SpriteRenderer spriteRenderer;
-    public SpriteRenderer dotRenderer;
+
 
     [Header("Combat")]
     public GameObject projectilePrefab;
-    public float range = 3f;            // 사거리
-    public float attackSpeed = 1f;      // 공격 속도
-    private float attackTimer = 0f;
+    public float range = 3f;
+    public float baseAttackSpeed = 1f; // 기본 공격 속도
+    private float cooldownTimer = 0f;
     private Transform currentTarget;
 
     void Awake()
@@ -34,17 +44,90 @@ public class Dice : MonoBehaviour
 
     void Update()
     {
-        attackTimer += Time.deltaTime;
-        if (currentTarget == null || Vector3.Distance(transform.position, currentTarget.position) > range)
+        if (isDragging)
+        {
+            HandleInput();
+            return;
+        }
+
+       
+        switch (currentState)//fsm
+        {
+            case DiceState.Idle:
+                UpdateIdle();
+                break;
+            case DiceState.Attack:
+                UpdateAttack();
+                break;
+            case DiceState.Cooldown:
+                UpdateCooldown();
+                break;
+        }
+
+        HandleInput();
+    }
+
+    void UpdateIdle()
+    {
+        if (currentTarget == null || !currentTarget.gameObject.activeInHierarchy ||
+            Vector3.Distance(transform.position, currentTarget.position) > range)
         {
             FindTarget();
         }
-        if (currentTarget != null && attackTimer >= AttackSpeed())
+
+        if (currentTarget != null)
         {
-            Attack();
-            attackTimer = 0f;
+            ChangeState(DiceState.Attack);
         }
-        HandleInput();
+    }
+
+    void UpdateAttack()
+    {
+        if (currentTarget == null || !currentTarget.gameObject.activeInHierarchy)
+        {
+            ChangeState(DiceState.Idle);
+            return;
+        }
+
+        FireProjectile();
+
+        ChangeState(DiceState.Cooldown);
+    }
+
+    void UpdateCooldown()
+    {
+        cooldownTimer += Time.deltaTime;
+
+        if (cooldownTimer >= GetAttackSpeed())
+        {
+            cooldownTimer = 0f;
+            ChangeState(DiceState.Idle);
+        }
+    }
+
+
+    void ChangeState(DiceState newState)
+    {
+        currentState = newState;
+    }
+
+    
+
+    void FireProjectile()
+    {
+        if (PoolManager.Instance == null) return;
+
+        GameObject bulletObj = PoolManager.Instance.Spawn(projectilePrefab, transform.position, Quaternion.identity);
+        Bullet bulletScript = bulletObj.GetComponent<Bullet>();
+
+        int finalDamage = 10 + (dotCount * 10);
+        bulletScript.Init(currentTarget, finalDamage, type);
+    }
+
+    float GetAttackSpeed()
+    {
+        if (type == DiceType.Wind) return baseAttackSpeed * 0.5f;
+        return baseAttackSpeed;
     }
 
     public void Init(DiceType newType)
@@ -185,9 +268,5 @@ void FindTarget()
         bulletScript.Init(currentTarget, finalDamage, type);
     }
    
-    float AttackSpeed()
-    {
-        if (type == DiceType.Wind) return attackSpeed * 0.5f;
-        return attackSpeed;
-    }
+    
 }
