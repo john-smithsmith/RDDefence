@@ -1,37 +1,44 @@
 using TMPro;
 using UnityEngine;
 
-
 public enum DiceState
 {
     Idle,       // 대기 
-    Attack,     // 공격 
+    Attack,     // 공격 (연사 중)
     Cooldown    // 휴식 
 }
 
 public enum DiceType { Basic, Ice, Fire, Lightning, Wind }
+
 public class Dice : MonoBehaviour
 {
     private bool isDragging = false;
-    private Vector2 startDragPos;
 
     [Header("State")]
     public DiceState currentState = DiceState.Idle;
 
     [Header("Data")]
     public DiceType type;      // 주사위 종류
-    public int dotCount = 1;   // 주사위 눈 개수
+    public int dotCount = 1;   // 주사위 눈 개수 (레벨)
     public Slot currentSlot;
 
     [Header("Prefab")]
     public SpriteRenderer spriteRenderer;
 
-
     [Header("Combat")]
     public GameObject projectilePrefab;
     public float range = 3f;
-    public float baseAttackSpeed = 1f; // 기본 공격 속도
+
+    [Tooltip("공격 한 사이클(연사)이 끝나고 쉬는 시간")]
+    public float attackInterval = 1f;
+
+    [Tooltip("연사 속도 (총알 사이의 간격)")]
+    public float burstInterval = 1f; 
+
+    // 내부 로직 변수
     private float cooldownTimer = 0f;
+    private float burstTimer = 0f;     // 연사 타이머
+    private int shotsFired = 0;        // 현재 몇 발 쐈는지 체크
     private Transform currentTarget;
 
     void Awake()
@@ -50,8 +57,7 @@ public class Dice : MonoBehaviour
             return;
         }
 
-       
-        switch (currentState)//fsm
+        switch (currentState) // FSM
         {
             case DiceState.Idle:
                 UpdateIdle();
@@ -89,29 +95,42 @@ public class Dice : MonoBehaviour
             return;
         }
 
-        FireProjectile();
+        burstTimer += Time.deltaTime;
 
-        ChangeState(DiceState.Cooldown);
+        if (burstTimer >= burstInterval)
+        {
+            burstTimer = 0f;
+            FireProjectile();
+            shotsFired++; // 발사 횟수 증가
+
+            if (shotsFired >= dotCount)
+            {
+                ChangeState(DiceState.Cooldown);
+            }
+        }
     }
 
     void UpdateCooldown()
     {
         cooldownTimer += Time.deltaTime;
 
-        if (cooldownTimer >= GetAttackSpeed())
+        if (cooldownTimer >= GetAttackInterval())
         {
             cooldownTimer = 0f;
             ChangeState(DiceState.Idle);
         }
     }
 
-
     void ChangeState(DiceState newState)
     {
         currentState = newState;
-    }
 
-    
+        if (newState == DiceState.Attack)
+        {
+            shotsFired = 0;
+            burstTimer = burstInterval;
+        }
+    }
 
     void FireProjectile()
     {
@@ -124,21 +143,23 @@ public class Dice : MonoBehaviour
         bulletScript.Init(currentTarget, finalDamage, type);
     }
 
-    float GetAttackSpeed()
+    float GetAttackInterval()
     {
-        if (type == DiceType.Wind) return baseAttackSpeed * 0.5f;
-        return baseAttackSpeed;
+        if (type == DiceType.Wind) return attackInterval * 0.5f;
+        return attackInterval;
     }
 
     public void Init(DiceType newType)
     {
         type = newType;
         dotCount = 1;
+        currentState = DiceState.Idle; 
         UpdateColor();
     }
 
-    public void UpdateColor()//임시색상
+    public void UpdateColor() // 임시 색상
     {
+        if (spriteRenderer == null) return;
         switch (type)
         {
             case DiceType.Basic: spriteRenderer.color = Color.white; break;
@@ -148,9 +169,10 @@ public class Dice : MonoBehaviour
             case DiceType.Wind: spriteRenderer.color = Color.green; break;
         }
     }
+
     public void SetDotCount(int count)
     {
-        
+        dotCount = count;
     }
 
     void HandleInput()
@@ -194,7 +216,7 @@ public class Dice : MonoBehaviour
             if (s != null)
             {
                 targetSlot = s;
-                break; 
+                break;
             }
         }
         if (targetSlot != null)
@@ -208,7 +230,8 @@ public class Dice : MonoBehaviour
             if (targetSlot.currentDice != null && targetSlot.currentDice != this)
             {
                 Dice targetDice = targetSlot.currentDice;
-                if (type == targetDice.type && dotCount == targetDice.dotCount && dotCount < 7)
+
+                if (type == targetDice.type && dotCount == targetDice.dotCount && dotCount < 6)
                 {
                     currentSlot.RemoveDice();
                     targetSlot.RemoveDice();
@@ -230,8 +253,7 @@ public class Dice : MonoBehaviour
         }
     }
 
-
-void FindTarget()
+    void FindTarget()
     {
         Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, range);
         float shortestDistance = Mathf.Infinity;
@@ -259,14 +281,4 @@ void FindTarget()
             currentTarget = null;
         }
     }
-
-    void Attack()
-    {
-        GameObject bulletObj = PoolManager.Instance.Spawn(projectilePrefab, transform.position, Quaternion.identity);
-        Bullet bulletScript = bulletObj.GetComponent<Bullet>();
-        int finalDamage = 10 + (dotCount * 10);
-        bulletScript.Init(currentTarget, finalDamage, type);
-    }
-   
-    
 }
