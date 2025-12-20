@@ -139,7 +139,16 @@ public class Dice : MonoBehaviour
         GameObject bulletObj = PoolManager.Instance.Spawn(projectilePrefab, transform.position, Quaternion.identity);
         Bullet bulletScript = bulletObj.GetComponent<Bullet>();
 
-        int finalDamage = 10 + (dotCount * 10);
+        
+        int baseDmg = 10;
+        if (DiceUpgradeManager.Instance != null)
+        {
+            baseDmg = DiceUpgradeManager.Instance.GetTotalDamage(type);
+        }
+
+        
+        int finalDamage = baseDmg * dotCount;
+
         bulletScript.Init(currentTarget, finalDamage, type);
     }
 
