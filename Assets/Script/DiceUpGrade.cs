@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System;
 
 [System.Serializable]
 public class UpgradeStat
@@ -14,28 +15,72 @@ public class UpgradeStat
 public class DiceUpgradeManager : MonoBehaviour
 {
     public static DiceUpgradeManager Instance;
+    
 
     [Header("Settings")]
-    public List<UpgradeStat> upgradeStats;
+    public List<UpgradeStat> upgradeStats = new List<UpgradeStat>();
 
-    private Dictionary<DiceType, int> currentLevels = new Dictionary<DiceType, int>();
     private Dictionary<DiceType, UpgradeStat> statDict = new Dictionary<DiceType, UpgradeStat>();
+    private Dictionary<DiceType, int> currentLevels = new Dictionary<DiceType, int>();
 
     void Awake()
     {
         Instance = this;
+        LoadCSVData();
         Initialize();
+    }
+
+    void LoadCSVData()
+    {
+        TextAsset csvData = Resources.Load<TextAsset>("DiceUpgradeData");
+
+        if (csvData == null)
+        {
+            Debug.LogError("CSV 파일을 찾을 수 없음");
+            return;
+        }
+
+        upgradeStats.Clear();
+
+        string[] lines = csvData.text.Split(new char[] { '\n' });
+
+        for (int i = 1; i < lines.Length; i++)
+        {
+            if (string.IsNullOrWhiteSpace(lines[i])) continue;
+
+            string[] row = lines[i].Split(',');
+
+            UpgradeStat newStat = new UpgradeStat();
+
+            try
+            {
+                newStat.type = (DiceType)Enum.Parse(typeof(DiceType), row[0].Trim());
+
+                newStat.baseDamage = int.Parse(row[1]);
+                newStat.damagePerLevel = int.Parse(row[2]);
+                newStat.startCost = int.Parse(row[3]);
+                newStat.costIncrease = int.Parse(row[4]);
+
+                upgradeStats.Add(newStat);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"{i}번째 줄 파싱 에러: {e.Message}");
+            }
+        }
+
+        Debug.Log("CSV 데이터 로드");
     }
 
     void Initialize()
     {
-        
+
         foreach (var stat in upgradeStats)
         {
             if (!statDict.ContainsKey(stat.type))
             {
                 statDict.Add(stat.type, stat);
-                currentLevels.Add(stat.type, 1); 
+                currentLevels.Add(stat.type, 1);
             }
         }
     }
