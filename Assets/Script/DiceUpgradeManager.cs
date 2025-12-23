@@ -15,7 +15,7 @@ public class UpgradeStat
 public class DiceUpgradeManager : MonoBehaviour
 {
     public static DiceUpgradeManager Instance;
-    
+    public event Action OnUpgradeSuccess;
 
     [Header("Settings")]
     public List<UpgradeStat> upgradeStats = new List<UpgradeStat>();
@@ -25,7 +25,14 @@ public class DiceUpgradeManager : MonoBehaviour
 
     void Awake()
     {
-        Instance = this;
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
         LoadCSVData();
         Initialize();
     }
@@ -126,11 +133,9 @@ public class DiceUpgradeManager : MonoBehaviour
         if (BoardManager.Instance.sp >= cost)
         {
             BoardManager.Instance.sp -= cost;
-
             currentLevels[type]++;
-
             Debug.Log($"{type} 주사위 강화! Lv.{currentLevels[type]}");
-
+            OnUpgradeSuccess?.Invoke();
         }
         else
         {

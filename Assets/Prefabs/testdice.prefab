@@ -105,14 +105,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca8111dbe652e3b439c9c7d013279b81, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Dice
+  currentState: 0
   type: 0
   dotCount: 1
-  gridPos: {x: 0, y: 0}
+  currentSlot: {fileID: 0}
   spriteRenderer: {fileID: 6752311677317967086}
-  dotRenderer: {fileID: 0}
   projectilePrefab: {fileID: 9216312181552705917, guid: 6811385ba7f1465419b8bc5c193d1b38, type: 3}
   range: 3
-  attackSpeed: 1
+  attackInterval: 3
+  burstInterval: 1
 --- !u!61 &-6809249343107404983
 BoxCollider2D:
   m_ObjectHideFlags: 0
