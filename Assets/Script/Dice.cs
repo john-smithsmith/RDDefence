@@ -24,6 +24,7 @@ public class Dice : MonoBehaviour
 
     [Header("Prefab")]
     public SpriteRenderer spriteRenderer;
+    public TextMeshPro levelText;
 
     [Header("Combat")]
     public GameObject projectilePrefab;
@@ -161,9 +162,9 @@ public class Dice : MonoBehaviour
     public void Init(DiceType newType)
     {
         type = newType;
-        dotCount = 1;
         currentState = DiceState.Idle; 
         UpdateColor();
+        SetDotCount(1);
     }
 
     public void UpdateColor() // 임시 색상
@@ -182,6 +183,11 @@ public class Dice : MonoBehaviour
     public void SetDotCount(int count)
     {
         dotCount = count;
+
+        if (levelText != null)
+        {
+            levelText.text = dotCount.ToString();
+        }
     }
 
     void HandleInput()
