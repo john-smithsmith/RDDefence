@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -14,10 +15,19 @@ public class BoardManager : MonoBehaviour
     public int sp = 100;
     public int spawnCost = 10;
 
+    [Header("Global FSM")]
+    public TargetMode currentTargetMode = TargetMode.Closest;
+    public event Action<TargetMode> OnTargetModeChanged;
+
     void Awake()
     {
         Instance = this;
         InitGrid();
+    }
+
+    void Start()
+    {
+        ChangeTargetState(TargetMode.Closest);
     }
 
     void InitGrid()
@@ -46,6 +56,46 @@ public class BoardManager : MonoBehaviour
         }
     }
 
+    public void CycleNextTargetMode()
+    {
+        int current = (int)currentTargetMode;
+        int next = (current + 1) % 3;
+        ChangeTargetState((TargetMode)next);
+    }
+
+    public void ChangeTargetState(TargetMode newMode)
+    {
+        currentTargetMode = newMode; // 상태 변경
+
+        // 상태별 특수 로직 (나중에 확장 가능)
+        switch (currentTargetMode)
+        {
+            case TargetMode.Closest:
+                Debug.Log("상태 : 가까운 적");
+                break;
+            case TargetMode.Front:
+                Debug.Log("상태 : 선두");
+                break;
+            case TargetMode.MaxHP:
+                Debug.Log("상태 : 체력");
+                break;
+        }
+
+        NotifyAllDice();
+        OnTargetModeChanged?.Invoke(currentTargetMode);
+    }
+
+    void NotifyAllDice()
+    {
+        foreach (Slot slot in allSlots)
+        {
+            if (!slot.IsEmpty())
+            {
+                slot.currentDice.SetTargetMode(currentTargetMode);
+            }
+        }
+    }
+
     bool SpawnRandomDice()
     {
         List<Slot> emptySlots = new List<Slot>();
@@ -55,16 +105,17 @@ public class BoardManager : MonoBehaviour
         }
 
         if (emptySlots.Count == 0) return false;
-        Slot targetSlot = emptySlots[Random.Range(0, emptySlots.Count)];
+        Slot targetSlot = emptySlots[UnityEngine.Random.Range(0, emptySlots.Count)];
         GameObject newDiceObj = PoolManager.Instance.Spawn(dicePrefab, targetSlot.transform.position, Quaternion.identity);
         Dice newDice = newDiceObj.GetComponent<Dice>();
-        DiceType randomType = (DiceType)Random.Range(0, 5);
+        DiceType randomType = (DiceType)UnityEngine.Random.Range(0, 5);
         newDice.Init(randomType);
+        newDice.SetTargetMode(currentTargetMode);
         targetSlot.SetDice(newDice);
         return true;
     }
 
-    public void SpawnMergedDiceAtRandom(int newDotCount)
+    public void SpawnMergedDiceRandom(int newDotCount)
     {
         List<Slot> emptySlots = new List<Slot>();
         foreach (Slot slot in allSlots)
@@ -73,12 +124,13 @@ public class BoardManager : MonoBehaviour
         }
         if (emptySlots.Count > 0)
         {
-            Slot targetSlot = emptySlots[Random.Range(0, emptySlots.Count)];
+            Slot targetSlot = emptySlots[UnityEngine.Random.Range(0, emptySlots.Count)];
             GameObject newDiceObj = PoolManager.Instance.Spawn(dicePrefab, targetSlot.transform.position, Quaternion.identity);
             Dice newDice = newDiceObj.GetComponent<Dice>();
-            DiceType randomType = (DiceType)Random.Range(0, 5);
+            DiceType randomType = (DiceType)UnityEngine.Random.Range(0, 5);
             newDice.Init(randomType);
             newDice.SetDotCount(newDotCount);
+            newDice.SetTargetMode(currentTargetMode);
             targetSlot.SetDice(newDice);
         }
     }

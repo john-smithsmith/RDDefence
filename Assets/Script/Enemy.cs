@@ -6,11 +6,11 @@ public class Enemy : MonoBehaviour
     public float baseSpeed = 2f;
     public float speed;
     public float maxHp = 100f;
-    private float currentHp;
+    public float currentHp;
 
     [Header("Pathfinding")]
     private Transform[] waypoints; 
-    private int targetIndex = 0; 
+    public int targetIndex = 0; 
 
     public void Init(Transform[] points, float hpBuff)
     {
@@ -89,5 +89,12 @@ public class Enemy : MonoBehaviour
         {
             Destroy(gameObject);
         }
+    }
+
+    public float GetProgress()
+    {
+        if (waypoints == null || targetIndex >= waypoints.Length) return 0;
+        float distToNext = Vector3.Distance(transform.position, waypoints[targetIndex].position);
+        return (targetIndex * 1000f) - distToNext;
     }
 }
