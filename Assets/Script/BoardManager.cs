@@ -19,6 +19,8 @@ public class BoardManager : MonoBehaviour
     public TargetMode currentTargetMode = TargetMode.Closest;
     public event Action<TargetMode> OnTargetModeChanged;
 
+    private bool[,] visited;
+
     void Awake()
     {
         Instance = this;
@@ -139,5 +141,47 @@ public class BoardManager : MonoBehaviour
     {
         sp += amount;
         Debug.Log("SP획득 현재 SP: " + sp);
+    }
+
+    public void RefreshAllSynergies()
+    {
+        visited = new bool[5, 3];
+        for (int x = 0; x < 5; x++)
+        {
+            for (int y = 0; y < 3; y++)
+            {
+                if (!slotGrid[x, y].IsEmpty() && !visited[x, y])
+                {
+                    List<Dice> cluster = new List<Dice>();
+                    DiceType targetType = slotGrid[x, y].currentDice.type;
+                    FindConnectedDiceDFS(x, y, targetType, cluster);
+                    ApplySynergyToCluster(cluster);
+                }
+            }
+        }
+    }
+
+    void FindConnectedDiceDFS(int x, int y, DiceType type, List<Dice> cluster)
+    {
+        if (x < 0 || x >= 5 || y < 0 || y >= 3) return;
+        if (visited[x, y] || slotGrid[x, y].IsEmpty()) return;
+        Dice currentDice = slotGrid[x, y].currentDice;
+        if (currentDice.type != type) return;
+
+        visited[x, y] = true; // 방문 체크
+        cluster.Add(currentDice); 
+        FindConnectedDiceDFS(x + 1, y, type, cluster); // 우
+        FindConnectedDiceDFS(x - 1, y, type, cluster); // 좌
+        FindConnectedDiceDFS(x, y + 1, type, cluster); // 상
+        FindConnectedDiceDFS(x, y - 1, type, cluster); // 하
+    }
+    void ApplySynergyToCluster(List<Dice> cluster)
+    {
+        int count = cluster.Count; // 연결된 개수
+        float multiplier = 1.0f + ((count - 1) * 0.1f);
+        foreach (Dice dice in cluster)
+        {
+            dice.SetSynergy(multiplier);
+        }
     }
 }
