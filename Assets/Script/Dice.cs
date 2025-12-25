@@ -40,6 +40,9 @@ public class Dice : MonoBehaviour
     [Header("Targeting")]
     public TargetMode targetMode = TargetMode.Closest;
 
+    [Header("Synergy")]
+    public float synergyMultiplier = 1.0f; // 기본 1배
+
     [Tooltip("공격 한 사이클(연사)이 끝나고 쉬는 시간")]
     public float attackInterval = 1f;
 
@@ -157,8 +160,9 @@ public class Dice : MonoBehaviour
             baseDmg = DiceUpgradeManager.Instance.GetTotalDamage(type);
         }
 
-        
-        int finalDamage = baseDmg * dotCount;
+
+        float damageFloat = (baseDmg * dotCount) * synergyMultiplier;
+        int finalDamage = Mathf.RoundToInt(damageFloat);
 
         bulletScript.Init(currentTarget, finalDamage, type);
     }
@@ -339,5 +343,10 @@ public class Dice : MonoBehaviour
     {
         targetMode = mode;
         FindTarget();
+    }
+
+    public void SetSynergy(float multiplier)
+    {
+        synergyMultiplier = multiplier;
     }
 }

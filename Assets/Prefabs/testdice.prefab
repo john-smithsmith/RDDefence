@@ -294,7 +294,8 @@ MonoBehaviour:
   spriteRenderer: {fileID: 6752311677317967086}
   levelText: {fileID: 1933386680471229320}
   projectilePrefab: {fileID: 9216312181552705917, guid: 6811385ba7f1465419b8bc5c193d1b38, type: 3}
-  range: 3
+  range: 10
+  targetMode: 0
   attackInterval: 3
   burstInterval: 1
 --- !u!61 &-6809249343107404983
