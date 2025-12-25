@@ -54,6 +54,7 @@ public class BoardManager : MonoBehaviour
                 sp -= spawnCost;
                 spawnCost += 5;
                 Debug.Log("다이스 소환 남은 SP: " + sp);
+                RefreshAllSynergies();
             }
         }
     }
@@ -134,6 +135,7 @@ public class BoardManager : MonoBehaviour
             newDice.SetDotCount(newDotCount);
             newDice.SetTargetMode(currentTargetMode);
             targetSlot.SetDice(newDice);
+            RefreshAllSynergies();
         }
     }
 
