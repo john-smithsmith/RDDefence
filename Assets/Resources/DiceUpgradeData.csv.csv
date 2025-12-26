@@ -1,0 +1,6 @@
+Type (A열),BaseDamage (B열),DmgPerLevel (C열),StartCost (D열),CostIncrease (E열)
+Basic,10,5,100,50
+Ice,8,3,120,60
+Fire,15,7,150,80
+Lightning,12,6,130,70
+Wind,7,4,110,50

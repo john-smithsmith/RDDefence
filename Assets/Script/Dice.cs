@@ -8,6 +8,13 @@ public enum DiceState
     Cooldown    // 휴식 
 }
 
+public enum TargetMode
+{
+    Closest,    // 디폴트
+    Front,      // 맨앞
+    MaxHP       // 체력
+}
+
 public enum DiceType { Basic, Ice, Fire, Lightning, Wind }
 
 public class Dice : MonoBehaviour
@@ -24,10 +31,17 @@ public class Dice : MonoBehaviour
 
     [Header("Prefab")]
     public SpriteRenderer spriteRenderer;
+    public TextMeshPro levelText;
 
     [Header("Combat")]
     public GameObject projectilePrefab;
     public float range = 3f;
+
+    [Header("Targeting")]
+    public TargetMode targetMode = TargetMode.Closest;
+
+    [Header("Synergy")]
+    public float synergyMultiplier = 1.0f; // 기본 1배
 
     [Tooltip("공격 한 사이클(연사)이 끝나고 쉬는 시간")]
     public float attackInterval = 1f;
@@ -146,8 +160,9 @@ public class Dice : MonoBehaviour
             baseDmg = DiceUpgradeManager.Instance.GetTotalDamage(type);
         }
 
-        
-        int finalDamage = baseDmg * dotCount;
+
+        float damageFloat = (baseDmg * dotCount) * synergyMultiplier;
+        int finalDamage = Mathf.RoundToInt(damageFloat);
 
         bulletScript.Init(currentTarget, finalDamage, type);
     }
@@ -161,9 +176,9 @@ public class Dice : MonoBehaviour
     public void Init(DiceType newType)
     {
         type = newType;
-        dotCount = 1;
         currentState = DiceState.Idle; 
         UpdateColor();
+        SetDotCount(1);
     }
 
     public void UpdateColor() // 임시 색상
@@ -182,6 +197,11 @@ public class Dice : MonoBehaviour
     public void SetDotCount(int count)
     {
         dotCount = count;
+
+        if (levelText != null)
+        {
+            levelText.text = dotCount.ToString();
+        }
     }
 
     void HandleInput()
@@ -246,7 +266,7 @@ public class Dice : MonoBehaviour
                     targetSlot.RemoveDice();
                     PoolManager.Instance.ReturnToPool(gameObject);
                     PoolManager.Instance.ReturnToPool(targetDice.gameObject);
-                    BoardManager.Instance.SpawnMergedDiceAtRandom(dotCount + 1);
+                    BoardManager.Instance.SpawnMergedDiceRandom(dotCount + 1);
                     return;
                 }
             }
@@ -265,29 +285,68 @@ public class Dice : MonoBehaviour
     void FindTarget()
     {
         Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, range);
-        float shortestDistance = Mathf.Infinity;
-        GameObject nearestEnemy = null;
+
+        Enemy bestTarget = null;
+        float maxScore = -1f;     
+        float minDistance = Mathf.Infinity; 
 
         foreach (Collider2D hit in hits)
         {
             if (hit.CompareTag("Enemy"))
             {
-                float dist = Vector3.Distance(transform.position, hit.transform.position);
-                if (dist < shortestDistance)
+                Enemy enemy = hit.GetComponent<Enemy>();
+                if (enemy == null || !enemy.gameObject.activeInHierarchy) continue;
+                switch (targetMode)
                 {
-                    shortestDistance = dist;
-                    nearestEnemy = hit.gameObject;
+                    case TargetMode.Closest:
+                        float dist = Vector3.Distance(transform.position, enemy.transform.position);
+                        if (dist < minDistance)
+                        {
+                            minDistance = dist;
+                            bestTarget = enemy;
+                        }
+                        break;
+
+                    case TargetMode.Front: 
+                        float progress = enemy.GetProgress();
+                        if (progress > maxScore)
+                        {
+                            maxScore = progress;
+                            bestTarget = enemy;
+                        }
+                        break;
+
+                    case TargetMode.MaxHP:
+                        if (enemy.currentHp > maxScore)
+                        {
+                            maxScore = enemy.currentHp;
+                            bestTarget = enemy;
+                        }
+                        break;
                 }
             }
         }
 
-        if (nearestEnemy != null)
-        {
-            currentTarget = nearestEnemy.transform;
-        }
-        else
-        {
-            currentTarget = null;
-        }
+        currentTarget = (bestTarget != null) ? bestTarget.transform : null;
+    }
+
+    public void ToggleTargetMode()
+    {
+        int current = (int)targetMode;
+        int next = (current + 1) % 3;
+        targetMode = (TargetMode)next;
+        Debug.Log($"주사위 타겟 모드: {targetMode}");
+        FindTarget();
+    }
+
+    public void SetTargetMode(TargetMode mode)
+    {
+        targetMode = mode;
+        FindTarget();
+    }
+
+    public void SetSynergy(float multiplier)
+    {
+        synergyMultiplier = multiplier;
     }
 }
