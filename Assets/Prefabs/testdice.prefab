@@ -298,6 +298,7 @@ MonoBehaviour:
   range: 10
   targetMode: 0
   synergyMultiplier: 1
+  synergyEffectObj: {fileID: 9154897858697689536}
   attackInterval: 3
   burstInterval: 1
 --- !u!61 &-6809249343107404983

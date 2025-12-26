@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using System.Collections;
 
 public enum DiceState
 {
@@ -42,6 +43,8 @@ public class Dice : MonoBehaviour
 
     [Header("Synergy")]
     public float synergyMultiplier = 1.0f; // 기본 1배
+    public GameObject synergyEffectObj;
+    private Coroutine twinkleCoroutine;
 
     [Tooltip("공격 한 사이클(연사)이 끝나고 쉬는 시간")]
     public float attackInterval = 1f;
@@ -348,5 +351,38 @@ public class Dice : MonoBehaviour
     public void SetSynergy(float multiplier)
     {
         synergyMultiplier = multiplier;
+        if (synergyMultiplier > 1.01f)
+        {
+            if (!synergyEffectObj.activeSelf)
+            {
+                synergyEffectObj.SetActive(true);
+                if (twinkleCoroutine != null) StopCoroutine(twinkleCoroutine);
+                twinkleCoroutine = StartCoroutine(TwinkleEffectRoutine());
+            }
+        }
+        else
+        {
+            if (synergyEffectObj.activeSelf)
+            {
+                synergyEffectObj.SetActive(false);
+                if (twinkleCoroutine != null) StopCoroutine(twinkleCoroutine);
+            }
+        }
+    }
+
+    IEnumerator TwinkleEffectRoutine()
+    {
+        SpriteRenderer glowSR = synergyEffectObj.GetComponent<SpriteRenderer>();
+        Color baseColor = glowSR.color; 
+
+        float speed = 3.0f; 
+
+        while (true)
+        {
+            float alpha = Mathf.PingPong(Time.time * speed, 1f);
+            glowSR.color = new Color(baseColor.r, baseColor.g, baseColor.b, alpha);
+
+            yield return null;
+        }
     }
 }
