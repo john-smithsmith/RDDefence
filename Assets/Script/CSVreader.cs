@@ -4,9 +4,9 @@ using System.Text.RegularExpressions;
 
 public class CSVReader
 {
-    static string SPLIT_RE;
-    static string LINE_SPLIT_RE;
-    static char[] TRIM_CHARS;
+    static string SPLIT_RE = @",(?=(?:[^""]*""[^""]*"")*(?![^""]*""))";
+    static string LINE_SPLIT_RE = @"\r\n|\n\r|\n|\r";
+    static char[] TRIM_CHARS = { '\"' };
 
     public static List<Dictionary<string, object>> Read(string file)
     {
@@ -33,7 +33,24 @@ public class CSVReader
             var entry = new Dictionary<string, object>();
             for (var j = 0; j < header.Length && j < values.Length; j++)
             {
-                
+                string value = values[j];
+                // 따옴표 제거 및 특수문자 처리
+                value = value.TrimStart(TRIM_CHARS).TrimEnd(TRIM_CHARS).Replace("\\", "");
+
+                // 숫자 변환 시도
+                object finalvalue = value;
+                int n;
+                float f;
+                if (int.TryParse(value, out n))
+                {
+                    finalvalue = n;
+                }
+                else if (float.TryParse(value, out f))
+                {
+                    finalvalue = f;
+                }
+
+                entry[header[j]] = finalvalue;
             }
             list.Add(entry);
         }
