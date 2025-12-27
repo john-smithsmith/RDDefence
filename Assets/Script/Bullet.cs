@@ -12,6 +12,9 @@ public class Bullet : MonoBehaviour
     private int maxTargets = 3;    
     private float chainRange = 4.0f;
 
+    [Header("Effects")]
+    public GameObject lightningVisualPrefab;
+
     public void Init(Transform _target, int _damage, DiceType _type)
     {
         target = _target;
@@ -91,11 +94,18 @@ public class Bullet : MonoBehaviour
         if (nextTarget != null)
         {
             nextTarget.TakeDamage(damage);
-
             visited.Add(nextTarget.gameObject.GetInstanceID());
 
-            Debug.DrawLine(startPos, nextTarget.transform.position, Color.yellow, 0.2f);
+            if (lightningVisualPrefab != null && PoolManager.Instance != null)
+            {
+                GameObject visualObj = PoolManager.Instance.Spawn(lightningVisualPrefab, Vector3.zero, Quaternion.identity);
+                LightningEffect effectScript = visualObj.GetComponent<LightningEffect>();
 
+                if (effectScript != null)
+                {
+                    effectScript.Show(startPos, nextTarget.transform.position);
+                }
+            }
             ChainDamage(nextTarget.transform.position, remainingCount - 1, visited);
         }
     }
