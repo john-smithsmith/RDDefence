@@ -373,14 +373,18 @@ public class Dice : MonoBehaviour
     IEnumerator TwinkleEffectRoutine()
     {
         SpriteRenderer glowSR = synergyEffectObj.GetComponent<SpriteRenderer>();
-        Color baseColor = glowSR.color; 
+        Color baseColor = glowSR.color;
 
-        float speed = 3.0f; 
+        Vector3 originalScale = Vector3.one * 1.3f; 
+
+        float speed = 3.0f;
 
         while (true)
         {
-            float alpha = Mathf.PingPong(Time.time * speed, 1f);
+            float time = Mathf.PingPong(Time.time * speed, 1f);
+            float alpha = Mathf.Lerp(0.4f, 1.0f, time);
             glowSR.color = new Color(baseColor.r, baseColor.g, baseColor.b, alpha);
+            synergyEffectObj.transform.localScale = Vector3.Lerp(originalScale, originalScale * 1.15f, time);
 
             yield return null;
         }
