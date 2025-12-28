@@ -30,6 +30,11 @@ public class BoardManager : MonoBehaviour
     void Start()
     {
         ChangeTargetState(TargetMode.Closest);
+        if (DataManager.Instance != null)
+        {
+            sp = (int)DataManager.Instance.gameDict["StartSP"];
+            spawnCost = (int)DataManager.Instance.gameDict["SpawnCost"];
+        }
     }
 
     void InitGrid()

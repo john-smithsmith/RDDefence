@@ -179,7 +179,14 @@ public class Dice : MonoBehaviour
     public void Init(DiceType newType)
     {
         type = newType;
-        currentState = DiceState.Idle; 
+
+        if (DataManager.Instance.diceDict.TryGetValue(type, out DiceStat stat))
+        {
+            range = stat.range;
+            attackInterval = stat.attackSpeed;
+        }
+
+        currentState = DiceState.Idle;
         UpdateColor();
         SetDotCount(1);
     }

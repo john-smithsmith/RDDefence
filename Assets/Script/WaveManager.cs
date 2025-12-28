@@ -28,31 +28,35 @@ public class WaveManager : MonoBehaviour
         while (currentWave <= maxWave)
         {
             Debug.Log("Wave " + currentWave + " 시작");
-            int enemyCount = 5 + (currentWave * 2); // 웨이브당 적 숫자 증가
-            float hpBuff = 1 + (currentWave * 0.2f); // 체력 증가 배율
-            if (currentWave == maxWave)
+
+            if (DataManager.Instance.waveDict.TryGetValue(currentWave, out WaveStat stat))
             {
-                SpawnEnemy(bossPrefab, hpBuff * 10);
+                int enemyCount = stat.enemyCount;
+                float hpBuff = stat.hpMultiplier;
+                float interval = stat.spawnInterval; 
+                int enemyID = stat.enemyID;          
+
+                for (int i = 0; i < enemyCount; i++)
+                {
+                    SpawnEnemy(enemyPrefab, hpBuff, enemyID);
+                    yield return new WaitForSeconds(interval);
+                }
             }
             else
             {
-                for (int i = 0; i < enemyCount; i++)
-                {
-                    SpawnEnemy(enemyPrefab, hpBuff);
-                    yield return new WaitForSeconds(spawnInterval);
-                }
-            }         
+                Debug.LogWarning(currentWave + "웨이브 데이터가 없습니다.");
+            }
+
             yield return new WaitForSeconds(timeBetweenWaves);
             currentWave++;
         }
-
         Debug.Log("모든 웨이브 클리어!");
     }
 
-    void SpawnEnemy(GameObject prefab, float hpBuff)
+    void SpawnEnemy(GameObject prefab, float hpBuff, int enemyID)
     {
         GameObject enemyObj = PoolManager.Instance.Spawn(prefab, waypoints[0].position, Quaternion.identity);
         Enemy enemyScript = enemyObj.GetComponent<Enemy>();
-        enemyScript.Init(waypoints, hpBuff);
+        enemyScript.Init(waypoints, hpBuff, enemyID);
     }
 }

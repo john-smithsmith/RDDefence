@@ -12,12 +12,11 @@ public class Enemy : MonoBehaviour
     private Transform[] waypoints; 
     public int targetIndex = 0; 
 
-    public void Init(Transform[] points, float hpBuff)
+    public void Init(Transform[] points, float hpMultiplier, int enemyID)
     {
-        waypoints = points;
-        targetIndex = 0; 
-        speed = baseSpeed;
-        maxHp *= hpBuff;
+        EnemyStat stat = DataManager.Instance.enemyDict[enemyID];
+        baseSpeed = stat.speed;
+        maxHp = stat.maxHp * hpMultiplier; // 웨이브 배율 적용
         currentHp = maxHp;
         if (waypoints.Length > 0)
         {
