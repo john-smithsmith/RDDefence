@@ -7,17 +7,32 @@ public class Enemy : MonoBehaviour
     public float speed;
     public float maxHp = 100f;
     public float currentHp;
+    public int dropSp;
 
     [Header("Pathfinding")]
     private Transform[] waypoints; 
-    public int targetIndex = 0; 
+    public int targetIndex = 0;
 
-    public void Init(Transform[] points, float hpMultiplier, int enemyID)
+    public void Init(Transform[] points, float hpBuff, int enemyID)
     {
-        EnemyStat stat = DataManager.Instance.enemyDict[enemyID];
-        baseSpeed = stat.speed;
-        maxHp = stat.maxHp * hpMultiplier; // 웨이브 배율 적용
+        waypoints = points;
+        targetIndex = 0;
+
+        if (DataManager.Instance.enemyDict.TryGetValue(enemyID, out EnemyStat stat))
+        {
+            speed = stat.speed;
+            maxHp = stat.maxHp * hpBuff;
+            dropSp = stat.dropSp;
+        }
+        else
+        {
+            speed = 2f;
+            maxHp = 100f * hpBuff;
+            dropSp = 10;
+        }
+
         currentHp = maxHp;
+
         if (waypoints.Length > 0)
         {
             transform.position = waypoints[0].position;
@@ -65,12 +80,9 @@ public class Enemy : MonoBehaviour
     {
         if (BoardManager.Instance != null)
         {
-            BoardManager.Instance.AddSP(10);
+            BoardManager.Instance.AddSP(dropSp);
         }
-        if (PoolManager.Instance != null)
-        {
-            PoolManager.Instance.ReturnToPool(gameObject);
-        }
+        if (PoolManager.Instance != null) PoolManager.Instance.ReturnToPool(gameObject);
         else
         {
             Destroy(gameObject);
