@@ -1,0 +1,5 @@
+ID,Name,BaseHP,Speed,DropSP,PrefabName
+0,Normal,100,2,10,Enemy
+1,Fast,50,4,10,Enemy
+2,Tank,300,1,15,Enemy
+3,Boss,5000,1.5,100,Boss

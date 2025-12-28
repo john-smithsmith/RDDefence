@@ -1,0 +1,6 @@
+Key,Value
+StartSP,100
+SpawnCost,10
+SpawnCostIncrease,5
+MaxSlotCount,15
+BossWaveInterval,10

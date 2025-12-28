@@ -1,0 +1,6 @@
+Type,BaseDamage,AttackSpeed,Range,SpecialValue,Description
+Basic,10,1.0,3.0,0,기본 주사위
+Ice,5,1.0,3.5,0.7,슬로우 효과(0.7배)
+Fire,20,1.2,3.0,1.5,스플래시 범위
+Lightning,8,0.8,4.0,3,체인 횟수
+Wind,7,0.4,3.0,0,빠른 공격속도
