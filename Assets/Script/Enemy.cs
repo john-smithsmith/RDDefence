@@ -39,12 +39,7 @@ public class Enemy : MonoBehaviour
             targetIndex = 1;
         }
     }
-    public void ApplySlow(float factor)
-    {
-        if (speed < baseSpeed * 0.9f) return;
-        speed *= factor;
-        GetComponent<SpriteRenderer>().color = Color.blue;
-    }
+  
 
     void Update()
     {
@@ -74,6 +69,13 @@ public class Enemy : MonoBehaviour
         {
             Die();
         }
+    }
+
+    public void ApplySlow(float factor)
+    {
+        if (speed < baseSpeed * 0.9f) return;
+        speed *= factor;
+        GetComponent<SpriteRenderer>().color = Color.blue;
     }
 
     void Die()

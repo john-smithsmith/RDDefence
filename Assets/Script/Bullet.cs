@@ -7,6 +7,7 @@ public class Bullet : MonoBehaviour
     private int damage;
     private DiceType type;
     private float speed = 10f;
+    private float specialValue;
 
     [Header("Lightning Settings")]
     private int maxTargets = 3;    
@@ -15,11 +16,12 @@ public class Bullet : MonoBehaviour
     [Header("Effects")]
     public GameObject lightningVisualPrefab;
 
-    public void Init(Transform _target, int _damage, DiceType _type)
+    public void Init(Transform _target, int _damage, DiceType _type, float _specialValue)
     {
         target = _target;
         damage = _damage;
         type = _type;
+        specialValue = _specialValue;
     }
 
     void Update()
@@ -51,13 +53,17 @@ public class Bullet : MonoBehaviour
 
         if (type == DiceType.Ice)
         {
-            primaryTarget.ApplySlow(0.7f);
+            primaryTarget.ApplySlow(specialValue);
+        }
+        else if (type == DiceType.Fire)
+        {
+            Explode(primaryTarget.transform.position, specialValue);
         }
         else if (type == DiceType.Lightning)
         {
-            HashSet<int> visitedEnemies = new HashSet<int>();
-            visitedEnemies.Add(primaryTarget.gameObject.GetInstanceID());
-            ChainDamage(primaryTarget.transform.position, maxTargets - 1, visitedEnemies);
+            HashSet<int> visited = new HashSet<int>();
+            visited.Add(primaryTarget.gameObject.GetInstanceID());
+            ChainDamage(primaryTarget.transform.position, (int)specialValue - 1, visited);
         }
     }
 
@@ -107,6 +113,23 @@ public class Bullet : MonoBehaviour
                 }
             }
             ChainDamage(nextTarget.transform.position, remainingCount - 1, visited);
+        }
+    }
+
+    void Explode(Vector3 center, float radius)
+    {
+        Collider2D[] hits = Physics2D.OverlapCircleAll(center, radius);
+
+        foreach (Collider2D hit in hits)
+        {
+            if (hit.CompareTag("Enemy"))
+            {
+                Enemy enemy = hit.GetComponent<Enemy>();
+                if (enemy != null && enemy.gameObject.activeInHierarchy)
+                {
+                    enemy.TakeDamage(damage);
+                }
+            }
         }
     }
 }

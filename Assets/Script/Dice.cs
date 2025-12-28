@@ -57,6 +57,7 @@ public class Dice : MonoBehaviour
     private float burstTimer = 0f;     // 연사 타이머
     private int shotsFired = 0;        // 현재 몇 발 쐈는지 체크
     private Transform currentTarget;
+    private float specialValue = 0f;
 
     void Awake()
     {
@@ -155,19 +156,14 @@ public class Dice : MonoBehaviour
 
         GameObject bulletObj = PoolManager.Instance.Spawn(projectilePrefab, transform.position, Quaternion.identity);
         Bullet bulletScript = bulletObj.GetComponent<Bullet>();
-
-        
         int baseDmg = 10;
         if (DiceUpgradeManager.Instance != null)
         {
             baseDmg = DiceUpgradeManager.Instance.GetTotalDamage(type);
         }
-
-
         float damageFloat = (baseDmg * dotCount) * synergyMultiplier;
         int finalDamage = Mathf.RoundToInt(damageFloat);
-
-        bulletScript.Init(currentTarget, finalDamage, type);
+        bulletScript.Init(currentTarget, finalDamage, type, specialValue);
     }
 
     float GetAttackInterval()
@@ -182,8 +178,9 @@ public class Dice : MonoBehaviour
 
         if (DataManager.Instance.diceDict.TryGetValue(type, out DiceStat stat))
         {
-            range = stat.range;
             attackInterval = stat.attackSpeed;
+            range = stat.range;
+            specialValue = stat.specialValue;
         }
 
         currentState = DiceState.Idle;

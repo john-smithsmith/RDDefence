@@ -75,7 +75,7 @@ public class BoardManager : MonoBehaviour
     {
         currentTargetMode = newMode; // 상태 변경
 
-        // 상태별 특수 로직 (나중에 확장 가능)
+        
         switch (currentTargetMode)
         {
             case TargetMode.Closest:

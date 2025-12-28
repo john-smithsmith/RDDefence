@@ -69,7 +69,6 @@ public class PoolInfo
             }
         }
 
-        //풀을 나눌 필요가 있을까?
 
         public void ReturnToPool(GameObject obj)
         {

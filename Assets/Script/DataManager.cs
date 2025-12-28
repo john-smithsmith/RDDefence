@@ -9,6 +9,7 @@ public class DiceStat
     public int baseDamage;
     public float attackSpeed;
     public float range;
+    public float specialValue;
 }
 
 [System.Serializable]
@@ -65,18 +66,16 @@ public class DataManager : MonoBehaviour
         {
             try
             {
-                // 빈 데이터 건너뛰기
                 if (!row.ContainsKey("Type")) continue;
 
                 DiceStat stat = new DiceStat();
 
-                // Enum 및 숫자 변환 (CSV 헤더 이름과 일치해야 함)
                 stat.type = (DiceType)Enum.Parse(typeof(DiceType), row["Type"].ToString());
 
                 if (row.ContainsKey("BaseDamage")) stat.baseDamage = int.Parse(row["BaseDamage"].ToString());
                 if (row.ContainsKey("AttackSpeed")) stat.attackSpeed = float.Parse(row["AttackSpeed"].ToString());
                 if (row.ContainsKey("Range")) stat.range = float.Parse(row["Range"].ToString());
-
+                if (row.ContainsKey("SpecialValue")) stat.specialValue = float.Parse(row["SpecialValue"].ToString());
                 if (!diceDict.ContainsKey(stat.type))
                     diceDict.Add(stat.type, stat);
             }
