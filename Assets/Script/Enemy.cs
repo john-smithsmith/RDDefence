@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 
 public class Enemy : MonoBehaviour
@@ -13,10 +14,14 @@ public class Enemy : MonoBehaviour
     private Transform[] waypoints; 
     public int targetIndex = 0;
 
+    [Header("UI")]
+    public TextMeshPro hpText;
+
     public void Init(Transform[] points, float hpBuff, int enemyID)
     {
         waypoints = points;
         targetIndex = 0;
+
 
         if (DataManager.Instance.enemyDict.TryGetValue(enemyID, out EnemyStat stat))
         {
@@ -32,6 +37,7 @@ public class Enemy : MonoBehaviour
         }
 
         currentHp = maxHp;
+        UpdateHpText();
 
         if (waypoints.Length > 0)
         {
@@ -65,6 +71,7 @@ public class Enemy : MonoBehaviour
     public void TakeDamage(float damage)
     {
         currentHp -= damage;
+        UpdateHpText();
         if (currentHp <= 0)
         {
             Die();
@@ -109,5 +116,13 @@ public class Enemy : MonoBehaviour
         if (waypoints == null || targetIndex >= waypoints.Length) return 0;
         float distToNext = Vector3.Distance(transform.position, waypoints[targetIndex].position);
         return (targetIndex * 1000f) - distToNext;
+    }
+
+    void UpdateHpText()
+    {
+        if (hpText != null)
+        {
+            hpText.text = Mathf.CeilToInt(currentHp).ToString();
+        }
     }
 }
