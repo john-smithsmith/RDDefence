@@ -63,7 +63,7 @@ public class Enemy : MonoBehaviour
             targetIndex++;
             if (targetIndex >= waypoints.Length)
             {
-                ReachEndPoint();
+                EnemyGoalPoint();
             }
         }
     }
@@ -98,18 +98,6 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    void ReachEndPoint()
-    {
-        Debug.Log("적이 기지에 도착했습니다!");
-        if (PoolManager.Instance != null)
-        {
-            PoolManager.Instance.ReturnToPool(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
 
     public float GetProgress()
     {
@@ -123,6 +111,23 @@ public class Enemy : MonoBehaviour
         if (hpText != null)
         {
             hpText.text = Mathf.CeilToInt(currentHp).ToString();
+        }
+    }
+
+    void EnemyGoalPoint()
+    {
+        if (BoardManager.Instance != null)
+        {
+            BoardManager.Instance.OnEnemyGoal();
+        }
+
+        if (PoolManager.Instance != null)
+        {
+            PoolManager.Instance.ReturnToPool(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
         }
     }
 }

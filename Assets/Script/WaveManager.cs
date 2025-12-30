@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using TMPro;
 
 public class WaveManager : MonoBehaviour
 {
@@ -11,7 +12,12 @@ public class WaveManager : MonoBehaviour
     public float timeBetweenWaves = 5f; // 웨이브 휴식 시간
     public float spawnInterval = 1f;    // 적 간격
     private int currentWave = 1;
+    public int CurrentWave => currentWave;
     private int maxWave = 10;
+
+    [Header("UI Text")]
+    public TextMeshProUGUI waveText; // "WAVE 1"
+    public TextMeshProUGUI hpText;   // "HP: 5 / 5"
 
     void Awake()
     {
@@ -21,6 +27,21 @@ public class WaveManager : MonoBehaviour
     void Start()
     {
         StartCoroutine(StartWaveLoop());
+    }
+
+    void Update()
+    {
+        if (WaveManager.Instance != null && waveText != null)
+        {
+            waveText.text = $"WAVE {WaveManager.Instance.CurrentWave}";
+        }
+
+        if (BoardManager.Instance != null && hpText != null)
+        {
+            int cur = BoardManager.Instance.currentHp;
+            int max = BoardManager.Instance.maxHp;
+            hpText.text = $"HP : {cur} / {max}";
+        }
     }
 
     IEnumerator StartWaveLoop()

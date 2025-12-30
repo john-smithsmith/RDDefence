@@ -15,6 +15,10 @@ public class BoardManager : MonoBehaviour
     public int sp = 100;
     public int spawnCost = 10;
 
+    [Header("Player Stats")]
+    public int maxHp = 5;      
+    public int currentHp;     
+
     [Header("Global FSM")]
     public TargetMode currentTargetMode = TargetMode.Closest;
     public event Action<TargetMode> OnTargetModeChanged;
@@ -30,6 +34,7 @@ public class BoardManager : MonoBehaviour
     void Start()
     {
         ChangeTargetState(TargetMode.Closest);
+        currentHp = maxHp;
         if (DataManager.Instance != null)
         {
             sp = (int)DataManager.Instance.gameDict["StartSP"];
@@ -91,6 +96,23 @@ public class BoardManager : MonoBehaviour
 
         NotifyAllDice();
         OnTargetModeChanged?.Invoke(currentTargetMode);
+    }
+
+    public void OnEnemyGoal()
+    {
+        currentHp--;
+        Debug.Log($"남은 체력: {currentHp}");
+
+        if (currentHp <= 0)
+        {
+            currentHp = 0;
+            GameOver();
+        }
+    }
+    void GameOver()
+    {
+        Debug.Log("게임 오버");
+        Time.timeScale = 0f;
     }
 
     void NotifyAllDice()
