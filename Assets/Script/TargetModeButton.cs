@@ -29,15 +29,15 @@ public class TargetModeButton : MonoBehaviour
         {
             case TargetMode.Closest:
                 statusText.text = "Target: Default";
-                statusText.color = Color.white;
+                statusText.color = Color.black;
                 break;
             case TargetMode.Front:
                 statusText.text = "Target: Head";
-                statusText.color = Color.red;
+                statusText.color = Color.black;
                 break;
             case TargetMode.MaxHP:
                 statusText.text = "Target: MaxHp";
-                statusText.color = Color.yellow;
+                statusText.color = Color.black;
                 break;
         }
     }
