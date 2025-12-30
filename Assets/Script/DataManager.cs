@@ -110,16 +110,21 @@ public class DataManager : MonoBehaviour
 
     void LoadGameData()
     {
-        var data = CSVReader.Read("Game");
+        var data = CSVReader.Read("GameData");
+
         foreach (var row in data)
         {
             if (row.ContainsKey("Key") && row.ContainsKey("Value"))
             {
                 string key = row["Key"].ToString();
                 float val = float.Parse(row["Value"].ToString());
-                gameDict[key] = val;
+                if (!gameDict.ContainsKey(key))
+                {
+                    gameDict.Add(key, val);
+                }
             }
         }
+        Debug.Log("게임 로드 완료");
     }
 
     void LoadEnemyData()
