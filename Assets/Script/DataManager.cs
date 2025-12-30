@@ -97,10 +97,12 @@ public class DataManager : MonoBehaviour
                 if (!row.ContainsKey("Wave")) continue;
                 WaveStat stat = new WaveStat();
                 stat.wave = int.Parse(row["Wave"].ToString());
-                if (row.ContainsKey("EnemyCount")) stat.enemyCount = int.Parse(row["EnemyCount"].ToString());
-                if (row.ContainsKey("HpMultiplier")) stat.hpMultiplier = float.Parse(row["HpMultiplier"].ToString());
-                if (row.ContainsKey("SpawnInterval")) stat.spawnInterval = float.Parse(row["SpawnInterval"].ToString());
                 if (row.ContainsKey("EnemyID")) stat.enemyID = int.Parse(row["EnemyID"].ToString());
+                if (row.ContainsKey("Count")) stat.enemyCount = int.Parse(row["Count"].ToString());
+                if (row.ContainsKey("SpawnInterval")) stat.spawnInterval = float.Parse(row["SpawnInterval"].ToString());
+                if (row.ContainsKey("HpMultiplier")) stat.hpMultiplier = float.Parse(row["HpMultiplier"].ToString());
+                
+                
 
                 if (!waveDict.ContainsKey(stat.wave)) waveDict.Add(stat.wave, stat);
             }

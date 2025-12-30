@@ -34,10 +34,7 @@ public class CSVReader
             for (var j = 0; j < header.Length && j < values.Length; j++)
             {
                 string value = values[j];
-                // 따옴표 제거 및 특수문자 처리
                 value = value.TrimStart(TRIM_CHARS).TrimEnd(TRIM_CHARS).Replace("\\", "");
-
-                // 숫자 변환 시도
                 object finalvalue = value;
                 int n;
                 float f;
@@ -49,11 +46,11 @@ public class CSVReader
                 {
                     finalvalue = f;
                 }
-
                 entry[header[j]] = finalvalue;
             }
             list.Add(entry);
         }
         return list;
     }
+
 }
