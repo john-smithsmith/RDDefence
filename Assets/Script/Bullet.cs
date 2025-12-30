@@ -10,7 +10,7 @@ public class Bullet : MonoBehaviour
     private float specialValue;
 
     [Header("Lightning Settings")]
-    private int maxTargets = 3;    
+    //private int maxTargets = 3;    
     private float chainRange = 4.0f;
 
     [Header("Effects")]
