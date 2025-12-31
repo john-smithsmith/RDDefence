@@ -216,66 +216,75 @@ public class Dice : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero);
+            RaycastHit2D[] hits = Physics2D.RaycastAll(mousePos, Vector2.zero);
 
-            if (hit.collider != null && hit.collider.gameObject == gameObject)
+            foreach (RaycastHit2D hit in hits)
             {
-                isDragging = true;
-                GetComponent<SpriteRenderer>().sortingOrder = 100;
+                if (hit.collider.gameObject == gameObject)
+                {
+                    isDragging = true;
+                    if (spriteRenderer != null) spriteRenderer.sortingOrder = 100;
+                    if (levelText != null) levelText.sortingOrder = 101;
+                    break;
+                }
             }
         }
 
         if (isDragging && Input.GetMouseButton(0))
         {
             Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            mousePos.z = 0;
+            mousePos.z = -1f; 
             transform.position = mousePos;
         }
 
         if (isDragging && Input.GetMouseButtonUp(0))
         {
             isDragging = false;
-            GetComponent<SpriteRenderer>().sortingOrder = 0;
             CheckDrop();
         }
     }
 
     void CheckDrop()
     {
-        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, 0.5f);
-        Slot targetSlot = null;
-        foreach (Collider2D hit in hits)
-        {
-            if (hit.gameObject == gameObject) continue;
+        Collider2D myCollider = GetComponent<Collider2D>();
+        if (myCollider != null) myCollider.enabled = false;
 
-            Slot s = hit.GetComponent<Slot>();
+        Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        RaycastHit2D[] hits = Physics2D.RaycastAll(mousePos, Vector2.zero);
+
+        Slot targetSlot = null;
+
+        foreach (RaycastHit2D hit in hits)
+        {
+            if (hit.collider.gameObject == gameObject) continue;
+
+            Slot s = hit.collider.GetComponent<Slot>();
             if (s != null)
             {
                 targetSlot = s;
-                break;
+                break; 
             }
         }
-        if (targetSlot != null)
+
+        if (targetSlot != null && targetSlot.currentDice != null)
         {
-            if (targetSlot.IsEmpty())
+            Dice targetDice = targetSlot.currentDice;
+            if (targetDice != this &&
+                type == targetDice.type &&
+                dotCount == targetDice.dotCount &&
+                dotCount < 7)
             {
                 currentSlot.RemoveDice();
-                targetSlot.SetDice(this);
-                return;
-            }
-            if (targetSlot.currentDice != null && targetSlot.currentDice != this)
-            {
-                Dice targetDice = targetSlot.currentDice;
+                targetSlot.RemoveDice();
 
-                if (type == targetDice.type && dotCount == targetDice.dotCount && dotCount < 6)
+                PoolManager.Instance.ReturnToPool(gameObject);
+                PoolManager.Instance.ReturnToPool(targetDice.gameObject);
+                if (BoardManager.Instance != null)
                 {
-                    currentSlot.RemoveDice();
-                    targetSlot.RemoveDice();
-                    PoolManager.Instance.ReturnToPool(gameObject);
-                    PoolManager.Instance.ReturnToPool(targetDice.gameObject);
                     BoardManager.Instance.SpawnMergedDiceRandom(dotCount + 1);
-                    return;
                 }
+
+                return; 
             }
         }
         ReturnToSlot();
@@ -285,7 +294,14 @@ public class Dice : MonoBehaviour
     {
         if (currentSlot != null)
         {
-            transform.position = currentSlot.transform.position;
+            Vector3 targetPos = currentSlot.transform.position;
+            targetPos.z = -0.1f;
+            transform.position = targetPos;
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.sortingOrder = 5; 
+                if (levelText != null) levelText.sortingOrder = 6; 
+            }
         }
     }
 

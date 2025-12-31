@@ -145,25 +145,31 @@ public class BoardManager : MonoBehaviour
         return true;
     }
 
-    public void SpawnMergedDiceRandom(int newDotCount)
+    public void SpawnMergedDiceRandom(int newLevel)
     {
         List<Slot> emptySlots = new List<Slot>();
-        foreach (Slot slot in allSlots)
+        for (int x = 0; x < 5; x++)
         {
-            if (slot.IsEmpty()) emptySlots.Add(slot);
+            for (int y = 0; y < 3; y++)
+            {
+                if (slotGrid[x, y].IsEmpty())
+                {
+                    emptySlots.Add(slotGrid[x, y]);
+                }
+            }
         }
-        if (emptySlots.Count > 0)
-        {
-            Slot targetSlot = emptySlots[UnityEngine.Random.Range(0, emptySlots.Count)];
-            GameObject newDiceObj = PoolManager.Instance.Spawn(dicePrefab, targetSlot.transform.position, Quaternion.identity);
-            Dice newDice = newDiceObj.GetComponent<Dice>();
-            DiceType randomType = (DiceType)UnityEngine.Random.Range(0, 5);
-            newDice.Init(randomType);
-            newDice.SetDotCount(newDotCount);
-            newDice.SetTargetMode(currentTargetMode);
-            targetSlot.SetDice(newDice);
-            RefreshAllSynergies();
-        }
+
+        if (emptySlots.Count == 0) return;
+        Slot targetSlot = emptySlots[UnityEngine.Random.Range(0, emptySlots.Count)];
+        GameObject diceObj = PoolManager.Instance.Spawn(dicePrefab, targetSlot.transform.position, Quaternion.identity);
+        Dice diceScript = diceObj.GetComponent<Dice>();
+        DiceType randomType = (DiceType)UnityEngine.Random.Range(0, 5); 
+
+        diceScript.Init(randomType); 
+        diceScript.SetDotCount(newLevel); 
+        targetSlot.SetDice(diceScript);
+
+        RefreshAllSynergies();
     }
 
     public void AddSP(int amount)
