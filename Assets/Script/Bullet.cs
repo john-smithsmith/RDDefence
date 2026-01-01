@@ -15,6 +15,7 @@ public class Bullet : MonoBehaviour
 
     [Header("Effects")]
     public GameObject lightningVisualPrefab;
+    public GameObject explosionVisualPrefab;
 
     public void Init(Transform _target, int _damage, DiceType _type, float _specialValue)
     {
@@ -118,6 +119,16 @@ public class Bullet : MonoBehaviour
 
     void Explode(Vector3 center, float radius)
     {
+        if (explosionVisualPrefab != null && PoolManager.Instance != null)
+        {
+            GameObject visualObj = PoolManager.Instance.Spawn(explosionVisualPrefab, center, Quaternion.identity);
+            ExplosionEffect effectScript = visualObj.GetComponent<ExplosionEffect>();
+            if (effectScript != null)
+            {
+                effectScript.Show(center, radius);
+            }
+        }
+
         Collider2D[] hits = Physics2D.OverlapCircleAll(center, radius);
 
         foreach (Collider2D hit in hits)
