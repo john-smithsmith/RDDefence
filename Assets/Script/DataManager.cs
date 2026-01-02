@@ -1,60 +1,152 @@
 using UnityEngine;
 using System.Collections.Generic;
-
+using System;
 
 [System.Serializable]
 public class DiceStat
 {
     public DiceType type;
-    
+    public int baseDamage;
+    public float attackSpeed;
+    public float range;
+    public float specialValue;
 }
 
 [System.Serializable]
 public class WaveStat
 {
-   
+    public int wave;
+    public int enemyCount;
+    public float hpMultiplier;
+    public float spawnInterval;
+    public int enemyID;
+}
+
+[System.Serializable]
+public class EnemyStat
+{
+    public int id;
+    public string name;
+    public float maxHp;
+    public float speed;
+    public int dropSp;
+    public string prefabName;
 }
 
 public class DataManager : MonoBehaviour
 {
     public static DataManager Instance;
 
-    public Dictionary<DiceType, DiceStat> diceDict = new Dictionary<DiceType, DiceStat>();
+    public Dictionary<string, float> gameDict = new Dictionary<string, float>();
+    public Dictionary<int, EnemyStat> enemyDict = new Dictionary<int, EnemyStat>();
     public Dictionary<int, WaveStat> waveDict = new Dictionary<int, WaveStat>();
+    public Dictionary<DiceType, DiceStat> diceDict = new Dictionary<DiceType, DiceStat>();
 
     void Awake()
     {
-        Instance = this;
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+
         LoadAllData();
     }
 
     void LoadAllData()
     {
-        LoadDiceData();
+        LoadGameData();
+        LoadEnemyData();
         LoadWaveData();
+        LoadDiceData();
     }
 
     void LoadDiceData()
     {
-        List<Dictionary<string, object>> data = CSVReader.Read("DiceData"); // 아래 CSVReader 참고
+        List<Dictionary<string, object>> data = CSVReader.Read("DiceData");
 
         foreach (var row in data)
         {
-            DiceStat stat = new DiceStat();
+            try
+            {
+                if (!row.ContainsKey("Type")) continue;
 
-           
+                DiceStat stat = new DiceStat();
+
+                stat.type = (DiceType)Enum.Parse(typeof(DiceType), row["Type"].ToString());
+
+                if (row.ContainsKey("BaseDamage")) stat.baseDamage = int.Parse(row["BaseDamage"].ToString());
+                if (row.ContainsKey("AttackSpeed")) stat.attackSpeed = float.Parse(row["AttackSpeed"].ToString());
+                if (row.ContainsKey("Range")) stat.range = float.Parse(row["Range"].ToString());
+                if (row.ContainsKey("SpecialValue")) stat.specialValue = float.Parse(row["SpecialValue"].ToString());
+                if (!diceDict.ContainsKey(stat.type))
+                    diceDict.Add(stat.type, stat);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("DiceData 파싱 에러: " + e.Message);
+            }
         }
-        Debug.Log("주사위 데이터 로드");
+        Debug.Log($"주사위 데이터 로드 완료: {diceDict.Count}개");
     }
 
     void LoadWaveData()
     {
         List<Dictionary<string, object>> data = CSVReader.Read("WaveData");
+        foreach (var row in data)
+        {
+            try
+            {
+                if (!row.ContainsKey("Wave")) continue;
+                WaveStat stat = new WaveStat();
+                stat.wave = int.Parse(row["Wave"].ToString());
+                if (row.ContainsKey("EnemyID")) stat.enemyID = int.Parse(row["EnemyID"].ToString());
+                if (row.ContainsKey("Count")) stat.enemyCount = int.Parse(row["Count"].ToString());
+                if (row.ContainsKey("SpawnInterval")) stat.spawnInterval = float.Parse(row["SpawnInterval"].ToString());
+                if (row.ContainsKey("HpMultiplier")) stat.hpMultiplier = float.Parse(row["HpMultiplier"].ToString());
+                
+                
+
+                if (!waveDict.ContainsKey(stat.wave)) waveDict.Add(stat.wave, stat);
+            }
+            catch (Exception e) { Debug.LogError("WaveData 오류: " + e.Message); }
+        }
+    }
+
+    void LoadGameData()
+    {
+        var data = CSVReader.Read("GameData");
 
         foreach (var row in data)
         {
-
+            if (row.ContainsKey("Key") && row.ContainsKey("Value"))
+            {
+                string key = row["Key"].ToString();
+                float val = float.Parse(row["Value"].ToString());
+                if (!gameDict.ContainsKey(key))
+                {
+                    gameDict.Add(key, val);
+                }
+            }
         }
-        Debug.Log("웨이브 데이터 로드");
+        Debug.Log("게임 로드 완료");
+    }
+
+    void LoadEnemyData()
+    {
+        List<Dictionary<string, object>> data = CSVReader.Read("EnemyData");
+        foreach (var row in data)
+        {
+            try
+            {
+                if (!row.ContainsKey("ID")) continue;
+                EnemyStat stat = new EnemyStat();
+                stat.id = int.Parse(row["ID"].ToString());
+                if (row.ContainsKey("Name")) stat.name = row["Name"].ToString();
+                if (row.ContainsKey("BaseHP")) stat.maxHp = float.Parse(row["BaseHP"].ToString());
+                if (row.ContainsKey("Speed")) stat.speed = float.Parse(row["Speed"].ToString());
+                if (row.ContainsKey("DropSP")) stat.dropSp = int.Parse(row["DropSP"].ToString());
+                if (row.ContainsKey("PrefabName")) stat.prefabName = row["PrefabName"].ToString();
+                if (!enemyDict.ContainsKey(stat.id)) enemyDict.Add(stat.id, stat);
+            }
+            catch (Exception e) { Debug.LogError("EnemyData 오류: " + e.Message); }
+        }
     }
 }

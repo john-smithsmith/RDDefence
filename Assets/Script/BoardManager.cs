@@ -15,6 +15,10 @@ public class BoardManager : MonoBehaviour
     public int sp = 100;
     public int spawnCost = 10;
 
+    [Header("Player Stats")]
+    public int maxHp = 5;      
+    public int currentHp;     
+
     [Header("Global FSM")]
     public TargetMode currentTargetMode = TargetMode.Closest;
     public event Action<TargetMode> OnTargetModeChanged;
@@ -30,6 +34,12 @@ public class BoardManager : MonoBehaviour
     void Start()
     {
         ChangeTargetState(TargetMode.Closest);
+        currentHp = maxHp;
+        if (DataManager.Instance != null)
+        {
+            sp = (int)DataManager.Instance.gameDict["StartSP"];
+            spawnCost = (int)DataManager.Instance.gameDict["SpawnCost"];
+        }
     }
 
     void InitGrid()
@@ -70,7 +80,7 @@ public class BoardManager : MonoBehaviour
     {
         currentTargetMode = newMode; // 상태 변경
 
-        // 상태별 특수 로직 (나중에 확장 가능)
+        
         switch (currentTargetMode)
         {
             case TargetMode.Closest:
@@ -86,6 +96,23 @@ public class BoardManager : MonoBehaviour
 
         NotifyAllDice();
         OnTargetModeChanged?.Invoke(currentTargetMode);
+    }
+
+    public void OnEnemyGoal()
+    {
+        currentHp--;
+        Debug.Log($"남은 체력: {currentHp}");
+
+        if (currentHp <= 0)
+        {
+            currentHp = 0;
+            GameOver();
+        }
+    }
+    void GameOver()
+    {
+        Debug.Log("게임 오버");
+        Time.timeScale = 0f;
     }
 
     void NotifyAllDice()
@@ -118,25 +145,31 @@ public class BoardManager : MonoBehaviour
         return true;
     }
 
-    public void SpawnMergedDiceRandom(int newDotCount)
+    public void SpawnMergedDiceRandom(int newLevel)
     {
         List<Slot> emptySlots = new List<Slot>();
-        foreach (Slot slot in allSlots)
+        for (int x = 0; x < 5; x++)
         {
-            if (slot.IsEmpty()) emptySlots.Add(slot);
+            for (int y = 0; y < 3; y++)
+            {
+                if (slotGrid[x, y].IsEmpty())
+                {
+                    emptySlots.Add(slotGrid[x, y]);
+                }
+            }
         }
-        if (emptySlots.Count > 0)
-        {
-            Slot targetSlot = emptySlots[UnityEngine.Random.Range(0, emptySlots.Count)];
-            GameObject newDiceObj = PoolManager.Instance.Spawn(dicePrefab, targetSlot.transform.position, Quaternion.identity);
-            Dice newDice = newDiceObj.GetComponent<Dice>();
-            DiceType randomType = (DiceType)UnityEngine.Random.Range(0, 5);
-            newDice.Init(randomType);
-            newDice.SetDotCount(newDotCount);
-            newDice.SetTargetMode(currentTargetMode);
-            targetSlot.SetDice(newDice);
-            RefreshAllSynergies();
-        }
+
+        if (emptySlots.Count == 0) return;
+        Slot targetSlot = emptySlots[UnityEngine.Random.Range(0, emptySlots.Count)];
+        GameObject diceObj = PoolManager.Instance.Spawn(dicePrefab, targetSlot.transform.position, Quaternion.identity);
+        Dice diceScript = diceObj.GetComponent<Dice>();
+        DiceType randomType = (DiceType)UnityEngine.Random.Range(0, 5); 
+
+        diceScript.Init(randomType); 
+        diceScript.SetDotCount(newLevel); 
+        targetSlot.SetDice(diceScript);
+
+        RefreshAllSynergies();
     }
 
     public void AddSP(int amount)

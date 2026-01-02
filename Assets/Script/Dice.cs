@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using System.Collections;
 
 public enum DiceState
 {
@@ -42,6 +43,8 @@ public class Dice : MonoBehaviour
 
     [Header("Synergy")]
     public float synergyMultiplier = 1.0f; // 기본 1배
+    public GameObject synergyEffectObj;
+    private Coroutine twinkleCoroutine;
 
     [Tooltip("공격 한 사이클(연사)이 끝나고 쉬는 시간")]
     public float attackInterval = 1f;
@@ -54,6 +57,7 @@ public class Dice : MonoBehaviour
     private float burstTimer = 0f;     // 연사 타이머
     private int shotsFired = 0;        // 현재 몇 발 쐈는지 체크
     private Transform currentTarget;
+    private float specialValue = 0f;
 
     void Awake()
     {
@@ -152,19 +156,14 @@ public class Dice : MonoBehaviour
 
         GameObject bulletObj = PoolManager.Instance.Spawn(projectilePrefab, transform.position, Quaternion.identity);
         Bullet bulletScript = bulletObj.GetComponent<Bullet>();
-
-        
         int baseDmg = 10;
         if (DiceUpgradeManager.Instance != null)
         {
             baseDmg = DiceUpgradeManager.Instance.GetTotalDamage(type);
         }
-
-
         float damageFloat = (baseDmg * dotCount) * synergyMultiplier;
         int finalDamage = Mathf.RoundToInt(damageFloat);
-
-        bulletScript.Init(currentTarget, finalDamage, type);
+        bulletScript.Init(currentTarget, finalDamage, type, specialValue);
     }
 
     float GetAttackInterval()
@@ -176,7 +175,15 @@ public class Dice : MonoBehaviour
     public void Init(DiceType newType)
     {
         type = newType;
-        currentState = DiceState.Idle; 
+
+        if (DataManager.Instance.diceDict.TryGetValue(type, out DiceStat stat))
+        {
+            attackInterval = stat.attackSpeed;
+            range = stat.range;
+            specialValue = stat.specialValue;
+        }
+
+        currentState = DiceState.Idle;
         UpdateColor();
         SetDotCount(1);
     }
@@ -209,66 +216,75 @@ public class Dice : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero);
+            RaycastHit2D[] hits = Physics2D.RaycastAll(mousePos, Vector2.zero);
 
-            if (hit.collider != null && hit.collider.gameObject == gameObject)
+            foreach (RaycastHit2D hit in hits)
             {
-                isDragging = true;
-                GetComponent<SpriteRenderer>().sortingOrder = 100;
+                if (hit.collider.gameObject == gameObject)
+                {
+                    isDragging = true;
+                    if (spriteRenderer != null) spriteRenderer.sortingOrder = 100;
+                    if (levelText != null) levelText.sortingOrder = 101;
+                    break;
+                }
             }
         }
 
         if (isDragging && Input.GetMouseButton(0))
         {
             Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            mousePos.z = 0;
+            mousePos.z = -1f; 
             transform.position = mousePos;
         }
 
         if (isDragging && Input.GetMouseButtonUp(0))
         {
             isDragging = false;
-            GetComponent<SpriteRenderer>().sortingOrder = 0;
             CheckDrop();
         }
     }
 
     void CheckDrop()
     {
-        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, 0.5f);
-        Slot targetSlot = null;
-        foreach (Collider2D hit in hits)
-        {
-            if (hit.gameObject == gameObject) continue;
+        Collider2D myCollider = GetComponent<Collider2D>();
+        if (myCollider != null) myCollider.enabled = false;
 
-            Slot s = hit.GetComponent<Slot>();
+        Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        RaycastHit2D[] hits = Physics2D.RaycastAll(mousePos, Vector2.zero);
+
+        Slot targetSlot = null;
+
+        foreach (RaycastHit2D hit in hits)
+        {
+            if (hit.collider.gameObject == gameObject) continue;
+
+            Slot s = hit.collider.GetComponent<Slot>();
             if (s != null)
             {
                 targetSlot = s;
-                break;
+                break; 
             }
         }
-        if (targetSlot != null)
+
+        if (targetSlot != null && targetSlot.currentDice != null)
         {
-            if (targetSlot.IsEmpty())
+            Dice targetDice = targetSlot.currentDice;
+            if (targetDice != this &&
+                type == targetDice.type &&
+                dotCount == targetDice.dotCount &&
+                dotCount < 7)
             {
                 currentSlot.RemoveDice();
-                targetSlot.SetDice(this);
-                return;
-            }
-            if (targetSlot.currentDice != null && targetSlot.currentDice != this)
-            {
-                Dice targetDice = targetSlot.currentDice;
+                targetSlot.RemoveDice();
 
-                if (type == targetDice.type && dotCount == targetDice.dotCount && dotCount < 6)
+                PoolManager.Instance.ReturnToPool(gameObject);
+                PoolManager.Instance.ReturnToPool(targetDice.gameObject);
+                if (BoardManager.Instance != null)
                 {
-                    currentSlot.RemoveDice();
-                    targetSlot.RemoveDice();
-                    PoolManager.Instance.ReturnToPool(gameObject);
-                    PoolManager.Instance.ReturnToPool(targetDice.gameObject);
                     BoardManager.Instance.SpawnMergedDiceRandom(dotCount + 1);
-                    return;
                 }
+
+                return; 
             }
         }
         ReturnToSlot();
@@ -278,7 +294,14 @@ public class Dice : MonoBehaviour
     {
         if (currentSlot != null)
         {
-            transform.position = currentSlot.transform.position;
+            Vector3 targetPos = currentSlot.transform.position;
+            targetPos.z = -0.1f;
+            transform.position = targetPos;
+            if (spriteRenderer != null)
+            {
+                spriteRenderer.sortingOrder = 5; 
+                if (levelText != null) levelText.sortingOrder = 6; 
+            }
         }
     }
 
@@ -348,5 +371,42 @@ public class Dice : MonoBehaviour
     public void SetSynergy(float multiplier)
     {
         synergyMultiplier = multiplier;
+        if (synergyMultiplier > 1.01f)
+        {
+            if (!synergyEffectObj.activeSelf)
+            {
+                synergyEffectObj.SetActive(true);
+                if (twinkleCoroutine != null) StopCoroutine(twinkleCoroutine);
+                twinkleCoroutine = StartCoroutine(TwinkleEffectRoutine());
+            }
+        }
+        else
+        {
+            if (synergyEffectObj.activeSelf)
+            {
+                synergyEffectObj.SetActive(false);
+                if (twinkleCoroutine != null) StopCoroutine(twinkleCoroutine);
+            }
+        }
+    }
+
+    IEnumerator TwinkleEffectRoutine()
+    {
+        SpriteRenderer glowSR = synergyEffectObj.GetComponent<SpriteRenderer>();
+        Color baseColor = glowSR.color;
+
+        Vector3 originalScale = Vector3.one * 1.3f; 
+
+        float speed = 3.0f;
+
+        while (true)
+        {
+            float time = Mathf.PingPong(Time.time * speed, 1f);
+            float alpha = Mathf.Lerp(0.4f, 1.0f, time);
+            glowSR.color = new Color(baseColor.r, baseColor.g, baseColor.b, alpha);
+            synergyEffectObj.transform.localScale = Vector3.Lerp(originalScale, originalScale * 1.15f, time);
+
+            yield return null;
+        }
     }
 }

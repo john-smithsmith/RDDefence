@@ -106,6 +106,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f88a5a78e4b1a6f4b8236b9708ce44b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Bullet
+  lightningVisualPrefab: {fileID: 9215865121902532202, guid: b549ec4243c77204192d54addcc405ef, type: 3}
+  explosionVisualPrefab: {fileID: 2478461384769781142, guid: fb275fdb19a5dd1429ffc5dfe83d55b2, type: 3}
 --- !u!58 &7409202403794337671
 CircleCollider2D:
   m_ObjectHideFlags: 0

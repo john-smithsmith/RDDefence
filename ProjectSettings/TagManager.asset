@@ -42,6 +42,9 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Slot
+    uniqueID: 260847193
+    locked: 0
   - name: Dice
     uniqueID: 1889504185
     locked: 0
