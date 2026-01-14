@@ -2954,7 +2954,7 @@ MonoBehaviour:
   - {fileID: 1019445027}
   sp: 200
   spawnCost: 5
-  maxHp: 5
+  maxHp: 100
   currentHp: 0
   currentTargetMode: 0
 --- !u!114 &1168522126
@@ -2994,11 +2994,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PoolManager
   prewarmList:
   - prefab: {fileID: 9216312181552705917, guid: 6811385ba7f1465419b8bc5c193d1b38, type: 3}
-    count: 50
-  - prefab: {fileID: 5185144727762032503, guid: 26468530961a89041959a9e03b127368, type: 3}
-    count: 30
-  - prefab: {fileID: 7434830257672155608, guid: dcee292977b2c844a8e7999924c2cec7, type: 3}
     count: 20
+  - prefab: {fileID: 5185144727762032503, guid: 26468530961a89041959a9e03b127368, type: 3}
+    count: 20
+  - prefab: {fileID: 7434830257672155608, guid: dcee292977b2c844a8e7999924c2cec7, type: 3}
+    count: 15
+  isPoolingMode: 1
 --- !u!114 &1168522128
 MonoBehaviour:
   m_ObjectHideFlags: 0
