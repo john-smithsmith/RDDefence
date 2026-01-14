@@ -75,7 +75,7 @@ public class Dice : MonoBehaviour
             return;
         }
 
-        switch (currentState) // FSM
+        switch (currentState)
         {
             case DiceState.Idle:
                 UpdateIdle();
@@ -168,6 +168,7 @@ public class Dice : MonoBehaviour
 
     float GetAttackInterval()
     {
+        float finalInterval = attackInterval * 2.0f;
         if (type == DiceType.Wind) return attackInterval * 0.5f;
         return attackInterval;
     }
