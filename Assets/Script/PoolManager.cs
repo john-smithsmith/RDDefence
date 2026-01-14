@@ -13,11 +13,18 @@ public class PoolInfo
         public static PoolManager Instance;
         public List<PoolInfo> prewarmList;
         private Dictionary<string, Queue<GameObject>> poolDictionary = new Dictionary<string, Queue<GameObject>>();
-        void Awake()
+
+    [Header("Test Settings")]
+        public bool isPoolingMode = true;
+
+    void Awake()
         {
             Instance = this;
+        if (isPoolingMode)
+        {
             InitializePools();
         }
+    }
         void InitializePools()
         {
             foreach (var info in prewarmList)
@@ -47,7 +54,11 @@ public class PoolInfo
 
         public GameObject Spawn(GameObject prefab, Vector3 position, Quaternion rotation)//²¨³»±â 
         {
-            string key = prefab.name;
+            if (!isPoolingMode)
+            {
+                return Instantiate(prefab, position, rotation);
+            }
+        string key = prefab.name;
             if (!poolDictionary.ContainsKey(key))
             {
                 poolDictionary.Add(key, new Queue<GameObject>());
@@ -72,7 +83,12 @@ public class PoolInfo
 
         public void ReturnToPool(GameObject obj)
         {
-            string key = obj.name;
+            if (!isPoolingMode)
+            {
+                Destroy(obj);
+                return;
+            }
+        string key = obj.name;
             obj.SetActive(false);
             if (!poolDictionary.ContainsKey(key))
             {

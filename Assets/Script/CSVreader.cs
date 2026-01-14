@@ -15,21 +15,17 @@ public class CSVReader
 
         if (data == null)
         {
-            Debug.LogError("CSV 파일을 찾을 수 없음: " + file);
+            Debug.LogError("CSV 파일없음: " + file);
             return list;
         }
 
         var lines = Regex.Split(data.text, LINE_SPLIT_RE);
-
         if (lines.Length <= 1) return list;
-
         var header = Regex.Split(lines[0], SPLIT_RE);
-
         for (var i = 1; i < lines.Length; i++)
         {
             var values = Regex.Split(lines[i], SPLIT_RE);
             if (values.Length == 0 || values[0] == "") continue;
-
             var entry = new Dictionary<string, object>();
             for (var j = 0; j < header.Length && j < values.Length; j++)
             {

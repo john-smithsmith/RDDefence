@@ -71,24 +71,19 @@ public class Bullet : MonoBehaviour
     void ChainDamage(Vector3 startPos, int remainingCount, HashSet<int> visited)
     {
         if (remainingCount <= 0) return;
-
         Collider2D[] hits = Physics2D.OverlapCircleAll(startPos, chainRange);
-
         Enemy nextTarget = null;
         float minDistance = float.MaxValue;
-
         foreach (Collider2D hit in hits)
         {
             if (hit.CompareTag("Enemy"))
             {
                 int id = hit.gameObject.GetInstanceID();
                 if (visited.Contains(id)) continue;
-
                 Enemy enemyScript = hit.GetComponent<Enemy>();
                 if (enemyScript != null && enemyScript.gameObject.activeInHierarchy)
                 {
                     float dist = Vector3.Distance(startPos, hit.transform.position);
-
                     if (dist < minDistance)
                     {
                         minDistance = dist;
@@ -102,7 +97,6 @@ public class Bullet : MonoBehaviour
         {
             nextTarget.TakeDamage(damage);
             visited.Add(nextTarget.gameObject.GetInstanceID());
-
             if (lightningVisualPrefab != null && PoolManager.Instance != null)
             {
                 GameObject visualObj = PoolManager.Instance.Spawn(lightningVisualPrefab, Vector3.zero, Quaternion.identity);
